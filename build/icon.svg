@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <defs>
+    <linearGradient id="topFill" x1="72" x2="196" y1="42" y2="146" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8F0" />
+      <stop offset="1" stop-color="#EAE2D7" />
+    </linearGradient>
+    <linearGradient id="bottomFill" x1="52" x2="200" y1="124" y2="224" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E49A69" />
+      <stop offset="1" stop-color="#7A83C1" />
+    </linearGradient>
+    <linearGradient id="edgeGlow" x1="40" x2="220" y1="108" y2="188" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFDAB9" stop-opacity="0.85" />
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.15" />
+      <stop offset="1" stop-color="#9AB4D2" stop-opacity="0.7" />
+    </linearGradient>
+    <filter id="shadow" width="224" height="224" x="16" y="16" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feFlood flood-opacity="0" result="BackgroundImageFix" />
+      <feColorMatrix in="SourceAlpha" result="hardAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+      <feOffset dy="10" />
+      <feGaussianBlur stdDeviation="12" />
+      <feColorMatrix values="0 0 0 0 0.17 0 0 0 0 0.12 0 0 0 0 0.09 0 0 0 0.22 0" />
+      <feBlend in2="BackgroundImageFix" result="effect1_dropShadow_0_1" />
+      <feBlend in="SourceGraphic" in2="effect1_dropShadow_0_1" result="shape" />
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <path
+      fill="url(#bottomFill)"
+      d="M70 110h116c20.987 0 38 17.013 38 38v18c0 20.987-17.013 38-38 38H70c-20.987 0-38-17.013-38-38v-18c0-20.987 17.013-38 38-38Z"
+    />
+    <path
+      fill="url(#topFill)"
+      stroke="#F0E3D5"
+      stroke-opacity="0.95"
+      stroke-width="4"
+      d="M86 36h84c26.51 0 48 21.49 48 48v8c0 26.51-21.49 48-48 48H86c-26.51 0-48-21.49-48-48v-8c0-26.51 21.49-48 48-48Z"
+    />
+    <path
+      stroke="url(#edgeGlow)"
+      stroke-linecap="round"
+      stroke-width="10"
+      d="M58 150h140"
+    />
+    <path
+      stroke="#FFF8F2"
+      stroke-linecap="round"
+      stroke-opacity="0.92"
+      stroke-width="6"
+      d="M86 82h84"
+    />
+  </g>
+</svg>

@@ -1,9 +1,10 @@
 {
   "name": "focus-flow",
   "private": false,
-  "version": "0.1.0",
-  "description": "Premium minimalist desktop focus timer for 50/10 and 90/15 work rhythms.",
+  "version": "0.2.0",
+  "description": "Premium minimalist desktop focus timer with English and Russian UI for 50/10 and 90/15 work rhythms.",
   "author": "CaspianG",
+  "license": "MIT",
   "homepage": "https://github.com/CaspianG/focus-flow",
   "repository": {
     "type": "git",
@@ -47,6 +48,7 @@
       "output": "release"
     },
     "win": {
+      "icon": "build/icon.ico",
       "signAndEditExecutable": false,
       "target": [
         "nsis"

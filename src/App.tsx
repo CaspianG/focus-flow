@@ -15,12 +15,14 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import {
-  RHYTHM_PRESETS,
-  useFocusTimer,
-  type PresetId,
+  getCopy,
+  type AppCopy,
+  type Language,
+  type PlatformId,
   type ResolvedTheme,
   type ThemeMode,
-} from './hooks/use-focus-timer';
+} from './lib/copy';
+import { RHYTHM_PRESETS, useFocusTimer, type PresetId } from './hooks/use-focus-timer';
 import type { PlannedSession, SessionBlock } from './lib/session-plan';
 import type { SoundTheme } from './lib/sound';
 
@@ -39,6 +41,7 @@ type MetricCardProps = {
 };
 
 type SessionCardProps = {
+  copy: AppCopy;
   session: PlannedSession;
   index: number;
   currentSessionIndex: number;
@@ -51,75 +54,6 @@ type SettingsChoiceProps = {
   label: string;
   detail: string;
   onClick: () => void;
-};
-
-const formatDuration = (minutes: number) => {
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (hours > 0 && remainingMinutes > 0) {
-    return `${hours}ч ${remainingMinutes}м`;
-  }
-
-  if (hours > 0) {
-    return `${hours}ч`;
-  }
-
-  return `${remainingMinutes}м`;
-};
-
-const formatSessionWord = (count: number) => {
-  const lastDigit = count % 10;
-  const lastTwoDigits = count % 100;
-
-  if (lastDigit === 1 && lastTwoDigits !== 11) {
-    return 'сессия';
-  }
-
-  if ([2, 3, 4].includes(lastDigit) && ![12, 13, 14].includes(lastTwoDigits)) {
-    return 'сессии';
-  }
-
-  return 'сессий';
-};
-
-const describeMode = (mode: 'focus-only' | 'full-session') => {
-  return mode === 'focus-only' ? 'Чистое фокус-время' : 'Полная длительность сессии';
-};
-
-const describePhase = (kind: SessionBlock['kind'] | undefined, status: string) => {
-  if (status === 'completed') {
-    return 'План на сегодня закрыт';
-  }
-
-  return kind === 'break' ? 'Мягкий перерыв' : 'Глубокая работа';
-};
-
-const describePhaseDetail = (
-  kind: SessionBlock['kind'] | undefined,
-  minutes: number | undefined,
-) => {
-  if (!minutes) {
-    return 'Можно настроить следующий день и запустить новый цикл.';
-  }
-
-  if (kind === 'break') {
-    return `Сейчас идёт восстановление на ${minutes} минут с мягким переходом и спокойным сигналом.`;
-  }
-
-  return `Сейчас идёт фокус-блок на ${minutes} минут с аккуратным звуковым маркером на границе фаз.`;
-};
-
-const blockSequence = (blocks: SessionBlock[]) => {
-  return blocks.map((block) => block.minutes).join(' · ');
-};
-
-const describeThemeSelection = (themeMode: ThemeMode, resolvedTheme: ResolvedTheme) => {
-  if (themeMode === 'system') {
-    return resolvedTheme === 'dark' ? 'Система · тёмная' : 'Система · светлая';
-  }
-
-  return themeMode === 'dark' ? 'Тёмная тема' : 'Светлая тема';
 };
 
 const ControlButton = ({
@@ -153,6 +87,7 @@ const MetricCard = ({ label, value, detail }: MetricCardProps) => {
 };
 
 const SessionCard = ({
+  copy,
   session,
   index,
   currentSessionIndex,
@@ -168,18 +103,12 @@ const SessionCard = ({
   return (
     <article className={`session-card session-card--${tone}`}>
       <div className="session-card__topline">
-        <span className="session-card__index">Сессия {index + 1}</span>
-        <span className="session-card__state">
-          {tone === 'done' ? 'Завершена' : tone === 'active' ? 'Сейчас' : 'В очереди'}
-        </span>
+        <span className="session-card__index">{copy.sessionLabel(index)}</span>
+        <span className="session-card__state">{copy.sessionState(tone)}</span>
       </div>
-      <strong className="session-card__title">
-        {formatDuration(session.focusMinutes)} фокуса
-      </strong>
-      <p className="session-card__detail">
-        {formatDuration(session.elapsedMinutes)} с паузами • {session.blocks.length} фаз
-      </p>
-      <p className="session-card__blocks">{blockSequence(session.blocks)}</p>
+      <strong className="session-card__title">{copy.sessionFocusTitle(session)}</strong>
+      <p className="session-card__detail">{copy.sessionDetail(session)}</p>
+      <p className="session-card__blocks">{copy.blockSequence(session.blocks)}</p>
     </article>
   );
 };
@@ -206,32 +135,6 @@ const SettingsChoice = ({
   );
 };
 
-const themeOptions: Array<{
-  mode: ThemeMode;
-  icon: LucideIcon;
-  label: string;
-  detail: string;
-}> = [
-  {
-    mode: 'light',
-    icon: SunMedium,
-    label: 'Light',
-    detail: 'Светлая, воздушная и мягкая палитра для дневной работы.',
-  },
-  {
-    mode: 'dark',
-    icon: MoonStar,
-    label: 'Dark',
-    detail: 'Глубокий графит с тёплым акцентом и более тихим свечением.',
-  },
-  {
-    mode: 'system',
-    icon: Monitor,
-    label: 'System',
-    detail: 'Автоматически повторяет тему операционной системы.',
-  },
-];
-
 const App = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const {
@@ -246,6 +149,7 @@ const App = () => {
     sessionProgress,
     resolvedTheme,
     setPresetId,
+    setLanguage,
     setSessionCount,
     setSessionHours,
     setAccountingMode,
@@ -257,26 +161,68 @@ const App = () => {
     resetPlanner,
   } = useFocusTimer();
 
+  const copy = getCopy(preferences.language);
   const activePlan = timerState.status === 'running' ? plan : previewPlan;
   const plannerLocked = timerState.status === 'running';
-  const phaseTitle = describePhase(currentBlock?.kind, timerState.status);
-  const phaseDetail = describePhaseDetail(currentBlock?.kind, currentBlock?.minutes);
-  const platform =
-    window.focusFlowDesktop?.platform === 'darwin'
-      ? 'macOS'
-      : window.focusFlowDesktop?.platform === 'win32'
-        ? 'Windows'
-        : window.focusFlowDesktop?.platform === 'linux'
-          ? 'Linux'
-          : 'Desktop';
+  const phaseTitle = copy.describePhase(currentBlock?.kind, timerState.status);
+  const phaseDetail = copy.describePhaseDetail(currentBlock?.kind, currentBlock?.minutes);
+  const platform = copy.platform(window.focusFlowDesktop?.platform as PlatformId);
   const primaryActionLabel =
     timerState.status === 'completed'
-      ? 'Новый день'
+      ? copy.buttons.newDay
       : timerState.status === 'running'
-        ? 'Пауза'
+        ? copy.buttons.pause
         : timerState.status === 'paused'
-          ? 'Продолжить'
-          : 'Старт';
+          ? copy.buttons.resume
+          : copy.buttons.start;
+
+  const themeOptions: Array<{
+    mode: ThemeMode;
+    icon: LucideIcon;
+    label: string;
+    detail: string;
+  }> = [
+    {
+      mode: 'light',
+      icon: SunMedium,
+      label: copy.themeOptions.light.label,
+      detail: copy.themeOptions.light.detail,
+    },
+    {
+      mode: 'dark',
+      icon: MoonStar,
+      label: copy.themeOptions.dark.label,
+      detail: copy.themeOptions.dark.detail,
+    },
+    {
+      mode: 'system',
+      icon: Monitor,
+      label: copy.themeOptions.system.label,
+      detail: copy.themeOptions.system.detail,
+    },
+  ];
+
+  const languageOptions: Array<{
+    language: Language;
+    label: string;
+    detail: string;
+  }> = [
+    {
+      language: 'en',
+      label: copy.languageOptions.en.label,
+      detail: copy.languageOptions.en.detail,
+    },
+    {
+      language: 'ru',
+      label: copy.languageOptions.ru.label,
+      detail: copy.languageOptions.ru.detail,
+    },
+  ];
+
+  const soundOptions: Array<[SoundTheme, string, string]> = [
+    ['dawn', copy.soundThemeOptions.dawn.label, copy.soundThemeOptions.dawn.detail],
+    ['glass', copy.soundThemeOptions.glass.label, copy.soundThemeOptions.glass.detail],
+  ];
 
   const handlePrimaryAction = () => {
     if (timerState.status === 'completed') {
@@ -301,15 +247,12 @@ const App = () => {
       >
         <div>
           <span className="brand-mark">Focus Flow</span>
-          <p className="brand-copy">
-            Тихий, современный desktop-ритм для глубоких сессий{' '}
-            {RHYTHM_PRESETS[preferences.presetId].label}
-          </p>
+          <p className="brand-copy">{copy.brandCopy(RHYTHM_PRESETS[preferences.presetId].label)}</p>
         </div>
 
         <button className="icon-button" onClick={() => setSettingsOpen(true)} type="button">
           <Settings2 size={18} strokeWidth={1.9} />
-          <span>Настройки</span>
+          <span>{copy.buttons.settings}</span>
         </button>
       </motion.header>
 
@@ -325,9 +268,9 @@ const App = () => {
               {RHYTHM_PRESETS[preferences.presetId].label}
             </span>
             <span className="hero-chip">{platform}</span>
-            <span className="hero-chip">{describeMode(preferences.accountingMode)}</span>
+            <span className="hero-chip">{copy.describeMode(preferences.accountingMode)}</span>
             <span className="hero-chip hero-chip--theme">
-              {describeThemeSelection(preferences.themeMode, resolvedTheme)}
+              {copy.describeThemeSelection(preferences.themeMode, resolvedTheme)}
             </span>
           </div>
 
@@ -340,7 +283,7 @@ const App = () => {
           <div className="progress-cluster">
             <div className="progress-card">
               <div className="progress-card__topline">
-                <span>Текущая сессия</span>
+                <span>{copy.progress.currentSession}</span>
                 <strong>{Math.round(sessionProgress * 100)}%</strong>
               </div>
               <div className="progress-bar">
@@ -350,15 +293,17 @@ const App = () => {
                 />
               </div>
               <p>
-                {timerState.status === 'completed'
-                  ? 'Все сессии завершены'
-                  : `Сессия ${Math.min(timerState.sessionIndex + 1, activePlan.sessions.length)} из ${activePlan.sessions.length}`}
+                {copy.currentSessionProgress(
+                  Math.min(timerState.sessionIndex + 1, activePlan.sessions.length),
+                  activePlan.sessions.length,
+                  timerState.status,
+                )}
               </p>
             </div>
 
             <div className="progress-card">
               <div className="progress-card__topline">
-                <span>Сегодняшний план</span>
+                <span>{copy.progress.dailyPlan}</span>
                 <strong>{Math.round(dayProgress * 100)}%</strong>
               </div>
               <div className="progress-bar">
@@ -368,29 +313,31 @@ const App = () => {
                 />
               </div>
               <p>
-                {activePlan.settings.sessionCount}{' '}
-                {formatSessionWord(activePlan.settings.sessionCount)} •{' '}
-                {formatDuration(activePlan.totals.elapsedMinutes)} общего ритма
+                {copy.dayProgressSummary(
+                  activePlan.settings.sessionCount,
+                  activePlan.totals.elapsedMinutes,
+                )}
               </p>
             </div>
           </div>
 
           <div className="preset-toggle-row">
-            {(Object.keys(RHYTHM_PRESETS) as PresetId[]).map((presetId) => (
-              <button
-                key={presetId}
-                className={`preset-toggle${preferences.presetId === presetId ? ' preset-toggle--active' : ''}`}
-                disabled={plannerLocked}
-                onClick={() => setPresetId(presetId)}
-                type="button"
-              >
-                <span>{RHYTHM_PRESETS[presetId].label}</span>
-                <small>
-                  {RHYTHM_PRESETS[presetId].focusMinutes} мин фокус •{' '}
-                  {RHYTHM_PRESETS[presetId].breakMinutes} мин пауза
-                </small>
-              </button>
-            ))}
+            {(Object.keys(RHYTHM_PRESETS) as PresetId[]).map((presetId) => {
+              const preset = RHYTHM_PRESETS[presetId];
+
+              return (
+                <button
+                  key={presetId}
+                  className={`preset-toggle${preferences.presetId === presetId ? ' preset-toggle--active' : ''}`}
+                  disabled={plannerLocked}
+                  onClick={() => setPresetId(presetId)}
+                  type="button"
+                >
+                  <span>{preset.label}</span>
+                  <small>{copy.presetDescription(preset.focusMinutes, preset.breakMinutes)}</small>
+                </button>
+              );
+            })}
           </div>
 
           <div className="controls-row">
@@ -403,12 +350,12 @@ const App = () => {
             <ControlButton
               disabled={timerState.status === 'completed'}
               icon={SkipForward}
-              label="Пропустить фазу"
+              label={copy.buttons.skipPhase}
               onClick={skipPhase}
             />
             <ControlButton
               icon={RotateCcw}
-              label="Сбросить"
+              label={copy.buttons.reset}
               onClick={resetPlanner}
               tone="ghost"
             />
@@ -424,15 +371,15 @@ const App = () => {
           >
             <div className="panel-heading">
               <div>
-                <span className="section-kicker">Планировщик дня</span>
-                <h2>Собери нужный ритм без лишнего шума</h2>
+                <span className="section-kicker">{copy.planner.kicker}</span>
+                <h2>{copy.planner.title}</h2>
               </div>
               <Sparkles size={18} strokeWidth={1.9} />
             </div>
 
             <div className="field-grid">
               <label className="field-card">
-                <span>Сессий сегодня</span>
+                <span>{copy.planner.sessionsToday}</span>
                 <input
                   disabled={plannerLocked}
                   max={12}
@@ -444,7 +391,7 @@ const App = () => {
               </label>
 
               <label className="field-card">
-                <span>Часов в сессии</span>
+                <span>{copy.planner.hoursInSession}</span>
                 <input
                   disabled={plannerLocked}
                   max={12}
@@ -464,7 +411,7 @@ const App = () => {
                 onClick={() => setAccountingMode('focus-only')}
                 type="button"
               >
-                Чистый фокус
+                {copy.planner.pureFocus}
               </button>
               <button
                 className={`mode-toggle${preferences.accountingMode === 'full-session' ? ' mode-toggle--active' : ''}`}
@@ -472,27 +419,27 @@ const App = () => {
                 onClick={() => setAccountingMode('full-session')}
                 type="button"
               >
-                С учётом пауз
+                {copy.planner.includingBreaks}
               </button>
             </div>
 
             <div className="metrics-grid">
               <MetricCard
-                detail="По текущему пресету"
-                label="На одну сессию"
-                value={formatDuration(
+                detail={copy.planner.accordingToPreset}
+                label={copy.planner.perSession}
+                value={copy.formatDuration(
                   currentSession?.focusMinutes ?? activePlan.sessions[0]?.focusMinutes ?? 0,
                 )}
               />
               <MetricCard
-                detail="С паузами и переходами"
-                label="Всего сегодня"
-                value={formatDuration(activePlan.totals.elapsedMinutes)}
+                detail={copy.planner.withBreaksAndTransitions}
+                label={copy.planner.totalToday}
+                value={copy.formatDuration(activePlan.totals.elapsedMinutes)}
               />
               <MetricCard
-                detail="Режим подсчёта"
-                label="Учёт"
-                value={describeMode(preferences.accountingMode)}
+                detail={copy.planner.countingMode}
+                label={copy.planner.accounting}
+                value={copy.describeMode(preferences.accountingMode)}
               />
             </div>
           </motion.section>
@@ -505,11 +452,12 @@ const App = () => {
           >
             <div className="panel-heading">
               <div>
-                <span className="section-kicker">Сценарий дня</span>
+                <span className="section-kicker">{copy.scenario.kicker}</span>
                 <h2>
-                  {activePlan.settings.sessionCount}{' '}
-                  {formatSessionWord(activePlan.settings.sessionCount)} по{' '}
-                  {formatDuration(Math.round(activePlan.settings.sessionHours * 60))}
+                  {copy.scenarioHeading(
+                    activePlan.settings.sessionCount,
+                    activePlan.settings.sessionHours,
+                  )}
                 </h2>
               </div>
               <Gauge size={18} strokeWidth={1.9} />
@@ -518,6 +466,7 @@ const App = () => {
             <div className="session-list">
               {activePlan.sessions.map((session, index) => (
                 <SessionCard
+                  copy={copy}
                   currentSessionIndex={timerState.sessionIndex}
                   dayComplete={timerState.status === 'completed'}
                   index={index}
@@ -549,22 +498,43 @@ const App = () => {
             >
               <div className="settings-sheet__header">
                 <div>
-                  <span className="section-kicker">Атмосфера и звук</span>
-                  <h2>Тонкая настройка приложения</h2>
+                  <span className="section-kicker">{copy.settings.kicker}</span>
+                  <h2>{copy.settings.title}</h2>
                 </div>
                 <button
                   className="icon-button icon-button--compact"
                   onClick={() => setSettingsOpen(false)}
                   type="button"
                 >
-                  Закрыть
+                  {copy.buttons.close}
                 </button>
               </div>
 
               <section className="settings-group">
                 <div className="settings-group__topline">
+                  <Settings2 size={18} strokeWidth={1.8} />
+                  <strong>{copy.settings.languageTitle}</strong>
+                </div>
+                <div className="settings-choice-grid settings-choice-grid--duo">
+                  {languageOptions.map(({ language, label, detail }) => (
+                    <SettingsChoice
+                      active={preferences.language === language}
+                      detail={detail}
+                      key={language}
+                      label={label}
+                      onClick={() => setLanguage(language)}
+                    />
+                  ))}
+                </div>
+                <p>
+                  {copy.settings.languageCurrent}: {copy.languageOptions[preferences.language].label}
+                </p>
+              </section>
+
+              <section className="settings-group">
+                <div className="settings-group__topline">
                   <MoonStar size={18} strokeWidth={1.8} />
-                  <strong>Тема интерфейса</strong>
+                  <strong>{copy.settings.themeTitle}</strong>
                 </div>
                 <div className="settings-choice-grid settings-choice-grid--themes">
                   {themeOptions.map(({ mode, icon, label, detail }) => (
@@ -578,13 +548,16 @@ const App = () => {
                     />
                   ))}
                 </div>
-                <p>Сейчас активно: {describeThemeSelection(preferences.themeMode, resolvedTheme)}</p>
+                <p>
+                  {copy.settings.themeCurrent}:{' '}
+                  {copy.describeThemeSelection(preferences.themeMode, resolvedTheme)}
+                </p>
               </section>
 
               <section className="settings-group">
                 <div className="settings-group__topline">
                   <Volume2 size={18} strokeWidth={1.8} />
-                  <strong>Громкость сигналов</strong>
+                  <strong>{copy.settings.volumeTitle}</strong>
                 </div>
                 <input
                   className="volume-slider"
@@ -595,19 +568,16 @@ const App = () => {
                   type="range"
                   value={preferences.volume}
                 />
-                <p>{Math.round(preferences.volume * 100)}% мягкости сигнала</p>
+                <p>{copy.settings.volumeLevel(preferences.volume)}</p>
               </section>
 
               <section className="settings-group">
                 <div className="settings-group__topline">
                   <Sparkles size={18} strokeWidth={1.8} />
-                  <strong>Тембр уведомлений</strong>
+                  <strong>{copy.settings.soundTitle}</strong>
                 </div>
-                <div className="settings-choice-grid">
-                  {([
-                    ['dawn', 'Dawn', 'Тёплый, чуть более живой и мягкий звон.'],
-                    ['glass', 'Glass', 'Чище, холоднее и почти кристальный оттенок.'],
-                  ] as [SoundTheme, string, string][]).map(([theme, label, detail]) => (
+                <div className="settings-choice-grid settings-choice-grid--duo">
+                  {soundOptions.map(([theme, label, detail]) => (
                     <SettingsChoice
                       active={preferences.soundTheme === theme}
                       detail={detail}
@@ -622,19 +592,19 @@ const App = () => {
               <section className="settings-group">
                 <div className="settings-group__topline">
                   <Gauge size={18} strokeWidth={1.8} />
-                  <strong>Подсчёт длительности</strong>
+                  <strong>{copy.settings.accountingTitle}</strong>
                 </div>
-                <div className="settings-choice-grid">
+                <div className="settings-choice-grid settings-choice-grid--duo">
                   <SettingsChoice
                     active={preferences.accountingMode === 'focus-only'}
-                    detail="Например, 4 часа именно чистой работы, а паузы сверху."
-                    label="Чистый фокус"
+                    detail={copy.settings.accountingFocusOnly.detail}
+                    label={copy.settings.accountingFocusOnly.label}
                     onClick={() => setAccountingMode('focus-only')}
                   />
                   <SettingsChoice
                     active={preferences.accountingMode === 'full-session'}
-                    detail="Например, все 4 часа уже включают и работу, и паузы."
-                    label="Полный цикл"
+                    detail={copy.settings.accountingFullSession.detail}
+                    label={copy.settings.accountingFullSession.label}
                     onClick={() => setAccountingMode('full-session')}
                   />
                 </div>

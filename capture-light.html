@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Focus Flow Capture Light</title>
+    <script>
+      localStorage.setItem(
+        'focus-flow/state/v1',
+        JSON.stringify({
+          preferences: {
+            language: 'en',
+            presetId: '50-10',
+            sessionCount: 2,
+            sessionHours: 4,
+            accountingMode: 'focus-only',
+            volume: 0.55,
+            soundTheme: 'dawn',
+            themeMode: 'light',
+          },
+        }),
+      );
+    </script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      .topbar,
+      .hero-panel,
+      .planner-panel,
+      .session-list-panel,
+      .settings-sheet {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -178,8 +178,9 @@ button {
 
 .brand-copy {
   margin: 0;
-  max-width: 560px;
+  max-width: 620px;
   font-size: 0.96rem;
+  line-height: 1.45;
   color: var(--text-soft);
 }
 
@@ -503,6 +504,7 @@ button {
   font-weight: 600;
   line-height: 1.08;
   letter-spacing: -0.04em;
+  max-width: 13ch;
 }
 
 .field-grid {
@@ -525,6 +527,7 @@ button {
 .field-card input {
   border: none;
   background: transparent;
+  width: 100%;
   font-size: 2rem;
   font-weight: 700;
   color: var(--text-main);
@@ -555,7 +558,7 @@ button {
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
 .metric-card {
@@ -606,6 +609,13 @@ button {
 .session-card__blocks {
   font-size: 0.88rem;
   letter-spacing: 0.06em;
+}
+
+.session-card__detail,
+.settings-choice__detail,
+.metric-detail,
+.hero-description {
+  line-height: 1.45;
 }
 
 .settings-backdrop {
@@ -664,6 +674,10 @@ button {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.settings-choice-grid--duo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .settings-choice {
   display: grid;
   gap: 8px;
@@ -696,7 +710,8 @@ button {
 }
 
 @media (max-width: 920px) {
-  .settings-choice-grid--themes {
+  .settings-choice-grid--themes,
+  .settings-choice-grid--duo {
     grid-template-columns: 1fr;
   }
 }

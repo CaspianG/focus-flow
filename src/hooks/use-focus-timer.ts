@@ -1,4 +1,5 @@
 import { startTransition, useDeferredValue, useEffect, useState } from 'react';
+import type { Language } from '../lib/copy';
 import {
   type AccountingMode,
   createDailyPlan,
@@ -38,6 +39,7 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 export type ResolvedTheme = 'light' | 'dark';
 
 export type FocusPreferences = {
+  language: Language;
   presetId: PresetId;
   sessionCount: number;
   sessionHours: number;
@@ -53,6 +55,7 @@ type PersistedState = {
 };
 
 const DEFAULT_PREFERENCES: FocusPreferences = {
+  language: 'en',
   presetId: '50-10',
   sessionCount: 2,
   sessionHours: 4,
@@ -68,6 +71,7 @@ const clamp = (value: number, min: number, max: number) => {
 
 const normalizePreferences = (value: Partial<FocusPreferences> | undefined): FocusPreferences => {
   return {
+    language: value?.language === 'ru' ? 'ru' : 'en',
     presetId: value?.presetId === '90-15' ? '90-15' : '50-10',
     sessionCount: clamp(Math.round(value?.sessionCount ?? DEFAULT_PREFERENCES.sessionCount), 1, 12),
     sessionHours:
@@ -231,6 +235,10 @@ export const useFocusTimer = () => {
   }, [resolvedTheme]);
 
   useEffect(() => {
+    document.documentElement.lang = preferences.language;
+  }, [preferences.language]);
+
+  useEffect(() => {
     if (timerState.status === 'running') {
       return;
     }
@@ -245,6 +253,7 @@ export const useFocusTimer = () => {
     });
   }, [
     preferences.accountingMode,
+    preferences.language,
     preferences.presetId,
     preferences.sessionCount,
     preferences.sessionHours,
@@ -361,6 +370,7 @@ export const useFocusTimer = () => {
     dayProgress,
     sessionProgress,
     resolvedTheme,
+    setLanguage: (language: Language) => setPreference('language', language),
     setPresetId: (presetId: PresetId) => setPreference('presetId', presetId),
     setSessionCount: (sessionCount: number) =>
       setPreference('sessionCount', clamp(Math.round(sessionCount), 1, 12)),

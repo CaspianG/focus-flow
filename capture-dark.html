@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Focus Flow Capture Dark</title>
+    <script>
+      localStorage.setItem(
+        'focus-flow/state/v1',
+        JSON.stringify({
+          preferences: {
+            language: 'en',
+            presetId: '90-15',
+            sessionCount: 2,
+            sessionHours: 4,
+            accountingMode: 'full-session',
+            volume: 0.55,
+            soundTheme: 'glass',
+            themeMode: 'dark',
+          },
+        }),
+      );
+    </script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      .topbar,
+      .hero-panel,
+      .planner-panel,
+      .session-list-panel,
+      .settings-sheet {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

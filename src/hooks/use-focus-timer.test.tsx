@@ -29,6 +29,7 @@ describe('useFocusTimer', () => {
       STORAGE_KEY,
       JSON.stringify({
         preferences: {
+          language: 'ru',
           presetId: '90-15',
           sessionCount: 2,
           sessionHours: 4,
@@ -42,12 +43,14 @@ describe('useFocusTimer', () => {
 
     const { result } = renderHook(() => useFocusTimer());
 
+    expect(result.current.preferences.language).toBe('ru');
     expect(result.current.preferences.presetId).toBe('90-15');
     expect(result.current.preferences.sessionCount).toBe(2);
     expect(result.current.preferences.sessionHours).toBe(4);
     expect(result.current.preferences.themeMode).toBe('dark');
     expect(result.current.resolvedTheme).toBe('dark');
     expect(result.current.plan.settings.accountingMode).toBe('full-session');
+    expect(document.documentElement.lang).toBe('ru');
   });
 
   it('updates the plan and persists planner changes', () => {
@@ -72,19 +75,25 @@ describe('useFocusTimer', () => {
   it('resolves system theme from matchMedia and persists explicit theme changes', () => {
     const { result } = renderHook(() => useFocusTimer());
 
+    expect(result.current.preferences.language).toBe('en');
     expect(result.current.preferences.themeMode).toBe('system');
     expect(result.current.resolvedTheme).toBe('dark');
     expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(document.documentElement.lang).toBe('en');
 
     act(() => {
+      result.current.setLanguage('ru');
       result.current.setThemeMode('light');
     });
 
+    expect(result.current.preferences.language).toBe('ru');
     expect(result.current.preferences.themeMode).toBe('light');
     expect(result.current.resolvedTheme).toBe('light');
     expect(document.documentElement.dataset.theme).toBe('light');
+    expect(document.documentElement.lang).toBe('ru');
 
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
+    expect(stored.preferences.language).toBe('ru');
     expect(stored.preferences.themeMode).toBe('light');
   });
 });

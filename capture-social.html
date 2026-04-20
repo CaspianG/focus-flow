@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Focus Flow Social Preview</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "Segoe UI", Inter, system-ui, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at top left, rgba(255, 188, 117, 0.2), transparent 28%),
+          radial-gradient(circle at bottom right, rgba(104, 132, 255, 0.24), transparent 30%),
+          linear-gradient(135deg, #171717 0%, #111318 38%, #0d1015 100%);
+        color: #f7f4ed;
+      }
+
+      .frame {
+        position: relative;
+        width: 1280px;
+        height: 640px;
+        padding: 54px;
+        overflow: hidden;
+      }
+
+      .orb {
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(20px);
+        opacity: 0.75;
+      }
+
+      .orb--warm {
+        inset: 20px auto auto 32px;
+        width: 240px;
+        height: 240px;
+        background: radial-gradient(circle, rgba(255, 193, 121, 0.5), transparent 72%);
+      }
+
+      .orb--cool {
+        inset: auto 26px 12px auto;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(102, 129, 255, 0.38), transparent 72%);
+      }
+
+      .shell {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1.02fr 0.98fr;
+        gap: 28px;
+        width: 100%;
+        height: 100%;
+        padding: 34px;
+        border-radius: 36px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow:
+          0 28px 80px rgba(0, 0, 0, 0.38),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(28px);
+      }
+
+      .copy {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding-right: 10px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+
+      .brand-mark {
+        width: 78px;
+        height: 78px;
+        border-radius: 24px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06));
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow:
+          0 20px 42px rgba(0, 0, 0, 0.24),
+          inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      }
+
+      .brand-mark img {
+        width: 48px;
+        height: 48px;
+      }
+
+      .eyebrow {
+        margin: 0 0 7px;
+        color: rgba(255, 226, 190, 0.9);
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 72px;
+        line-height: 0.94;
+        letter-spacing: -0.06em;
+      }
+
+      .summary {
+        max-width: 470px;
+        margin: 26px 0 0;
+        color: rgba(245, 241, 232, 0.78);
+        font-size: 24px;
+        line-height: 1.36;
+      }
+
+      .highlights {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 34px;
+      }
+
+      .chip {
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+
+      .chip strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 20px;
+        font-weight: 600;
+        color: #f8f6f0;
+      }
+
+      .chip span {
+        color: rgba(245, 241, 232, 0.72);
+        font-size: 15px;
+        line-height: 1.35;
+      }
+
+      .footer {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .pill {
+        padding: 12px 16px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        color: rgba(247, 244, 237, 0.9);
+        font-size: 15px;
+        font-weight: 500;
+      }
+
+      .shots {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-left: 20px;
+      }
+
+      .shot {
+        position: absolute;
+        width: 505px;
+        border-radius: 28px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        box-shadow:
+          0 22px 50px rgba(0, 0, 0, 0.35),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      }
+
+      .shot img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .shot--light {
+        inset: 28px 88px auto auto;
+        transform: rotate(-6deg);
+      }
+
+      .shot--dark {
+        inset: auto -10px 6px auto;
+        transform: rotate(7deg);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="frame">
+      <div class="orb orb--warm"></div>
+      <div class="orb orb--cool"></div>
+      <section class="shell">
+        <div class="copy">
+          <div>
+            <div class="brand">
+              <div class="brand-mark">
+                <img src="/public/favicon.svg" alt="Focus Flow icon" />
+              </div>
+              <div>
+                <p class="eyebrow">Desktop Focus Timer</p>
+                <h1>Focus Flow</h1>
+              </div>
+            </div>
+            <p class="summary">
+              A calm, modern deep-work timer for structured days, beautiful break rhythms, and session planning that
+              actually feels pleasant to use.
+            </p>
+            <div class="highlights">
+              <div class="chip">
+                <strong>50/10 and 90/15</strong>
+                <span>Switch between classic focus rhythms with soft sound cues.</span>
+              </div>
+              <div class="chip">
+                <strong>Session Planning</strong>
+                <span>Build days like 2 sessions x 4 hours and see the full sequence instantly.</span>
+              </div>
+              <div class="chip">
+                <strong>English and Russian</strong>
+                <span>English by default, with a remembered in-app language switch.</span>
+              </div>
+              <div class="chip">
+                <strong>Light and Dark</strong>
+                <span>Minimal glass UI with refined themes for desktop.</span>
+              </div>
+            </div>
+          </div>
+          <div class="footer">
+            <span class="pill">Electron + React + TypeScript</span>
+            <span class="pill">Windows Release Ready</span>
+            <span class="pill">Pleasant Built-In Sounds</span>
+          </div>
+        </div>
+        <div class="shots">
+          <figure class="shot shot--light">
+            <img src="/docs/screenshots/focus-flow-light.png" alt="Focus Flow light theme screenshot" />
+          </figure>
+          <figure class="shot shot--dark">
+            <img src="/docs/screenshots/focus-flow-dark.png" alt="Focus Flow dark theme screenshot" />
+          </figure>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
