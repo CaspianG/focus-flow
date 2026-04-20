@@ -1,0 +1,90 @@
+{
+  "name": "focus-flow",
+  "private": false,
+  "version": "0.1.0",
+  "description": "Premium minimalist desktop focus timer for 50/10 and 90/15 work rhythms.",
+  "author": "CaspianG",
+  "homepage": "https://github.com/CaspianG/focus-flow",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CaspianG/focus-flow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/CaspianG/focus-flow/issues"
+  },
+  "keywords": [
+    "electron",
+    "focus",
+    "pomodoro",
+    "productivity",
+    "react",
+    "timer"
+  ],
+  "type": "module",
+  "main": "dist-electron/main.cjs",
+  "scripts": {
+    "dev": "concurrently -k \"npm:dev:renderer\" \"npm:dev:main\" \"npm:dev:electron\"",
+    "dev:renderer": "vite",
+    "dev:main": "tsup electron/main.ts electron/preload.ts --format cjs --out-dir dist-electron --sourcemap --external electron --watch",
+    "dev:electron": "wait-on tcp:5173 file:dist-electron/main.cjs && electronmon .",
+    "build": "npm run test && npm run build:renderer && npm run build:electron",
+    "build:renderer": "vite build",
+    "build:electron": "tsup electron/main.ts electron/preload.ts --format cjs --out-dir dist-electron --sourcemap --external electron",
+    "dist": "npm run build && electron-builder",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "build": {
+    "appId": "com.codex.focusflow",
+    "productName": "Focus Flow",
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    }
+  },
+  "dependencies": {
+    "framer-motion": "^12.24.0",
+    "lucide-react": "^0.562.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^24.9.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.0.4",
+    "concurrently": "^9.2.1",
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12",
+    "electronmon": "^2.0.2",
+    "jsdom": "^27.0.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.10",
+    "vitest": "^3.2.4",
+    "wait-on": "^8.0.5"
+  }
+}
