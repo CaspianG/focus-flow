@@ -2,6 +2,11 @@ import { app, BrowserWindow } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 const isDev = !app.isPackaged;
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+
+if (!hasSingleInstanceLock) {
+  app.exit(0);
+}
 
 const writeLaunchLog = (message: string) => {
   try {
@@ -86,6 +91,25 @@ const createWindow = () => {
   writeLaunchLog('loading packaged renderer');
   void window.loadFile(path.join(__dirname, '../dist/index.html'));
 };
+
+const focusExistingWindow = () => {
+  const [window] = BrowserWindow.getAllWindows();
+
+  if (!window) {
+    return;
+  }
+
+  if (window.isMinimized()) {
+    window.restore();
+  }
+
+  window.focus();
+};
+
+app.on('second-instance', () => {
+  writeLaunchLog('second-instance received; focusing existing window');
+  focusExistingWindow();
+});
 
 app.whenReady().then(() => {
   writeLaunchLog('app ready');

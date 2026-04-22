@@ -1,7 +1,7 @@
 {
   "name": "focus-flow",
   "private": false,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Premium minimalist desktop focus timer with English and Russian UI for 50/10 and 90/15 work rhythms.",
   "author": "CaspianG",
   "license": "MIT",
@@ -39,6 +39,7 @@
   "build": {
     "appId": "com.codex.focusflow",
     "productName": "Focus Flow",
+    "artifactName": "Focus.Flow.Portable.${version}.${ext}",
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
@@ -51,8 +52,28 @@
       "icon": "build/icon.ico",
       "signAndEditExecutable": false,
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
       ]
+    },
+    "nsis": {
+      "artifactName": "Focus.Flow.Setup.${version}.${ext}",
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Focus Flow",
+      "deleteAppDataOnUninstall": false
     },
     "mac": {
       "target": [

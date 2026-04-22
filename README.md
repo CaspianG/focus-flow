@@ -58,13 +58,13 @@ The easiest way to use Focus Flow is from the [GitHub Releases](https://github.c
 
 ### Windows installer
 
-1. Download `Focus.Flow.Setup.0.2.0.exe` from the latest release.
+1. Download `Focus.Flow.Setup.0.2.1.exe` from the latest release.
 2. Run the installer.
 3. Launch `Focus Flow` from the Start menu or desktop shortcut.
 
 ### Portable build
 
-If you prefer to run it without installation, download `Focus.Flow.Portable.0.2.0.zip`, extract it, and open `Focus Flow.exe`.
+If you prefer to run it without installation, download `Focus.Flow.Portable.0.2.1.zip`, extract it, and open `Focus Flow.exe`.
 
 ## Interface Language
 
