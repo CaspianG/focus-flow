@@ -28,4 +28,8 @@ describe('vite config for Electron packaging', () => {
     expect(packageJson.build.nsis.createStartMenuShortcut).toBe(true);
     expect(packageJson.build.nsis.shortcutName).toBe('Focus Flow');
   });
+
+  it('ships the app icon for the runtime tray menu', () => {
+    expect(packageJson.build.files).toContain('build/icon.ico');
+  });
 });

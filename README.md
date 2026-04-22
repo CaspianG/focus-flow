@@ -47,6 +47,7 @@ That choice lives in Settings, so the planner adapts to the way you personally c
 - Language switcher with persisted `English / Russian` UI
 - Theme modes: `Light`, `Dark`, and `System`
 - Gentle built-in sound cues with two sound profiles: `Dawn` and `Glass`
+- System tray mode: closing the window keeps the timer running in the background
 - Start, pause, skip, and reset controls
 - Progress overview for the current block, current session, and the full day
 - Persistent local state so your plan survives app restarts
@@ -58,17 +59,21 @@ The easiest way to use Focus Flow is from the [GitHub Releases](https://github.c
 
 ### Windows installer
 
-1. Download `Focus.Flow.Setup.0.2.1.exe` from the latest release.
+1. Download `Focus.Flow.Setup.0.2.2.exe` from the latest release.
 2. Run the installer.
 3. Launch `Focus Flow` from the Start menu or desktop shortcut.
 
 ### Portable build
 
-If you prefer to run it without installation, download `Focus.Flow.Portable.0.2.1.zip`, extract it, and open `Focus Flow.exe`.
+If you prefer to run it without installation, download `Focus.Flow.Portable.0.2.2.zip`, extract it, and open `Focus Flow.exe`.
 
 ## Interface Language
 
 Focus Flow opens in `English` by default for new installs. If you switch the interface to `Russian` in Settings, that choice is saved locally and restored automatically on future launches.
+
+## Background Timer
+
+Closing the Focus Flow window hides it to the Windows system tray instead of stopping the app. Your active timer keeps running in the background, and you can reopen the window from the tray icon. Use `Quit Focus Flow` in the tray menu when you want to fully exit.
 
 ## Create A Desktop Shortcut
 

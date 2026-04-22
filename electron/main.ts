@@ -1,8 +1,11 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, Menu, nativeImage, Tray } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 const isDev = !app.isPackaged;
 const hasSingleInstanceLock = app.requestSingleInstanceLock();
+let allowQuit = false;
+let mainWindow: BrowserWindow | null = null;
+let tray: Tray | null = null;
 
 if (!hasSingleInstanceLock) {
   app.exit(0);
@@ -16,6 +19,59 @@ const writeLaunchLog = (message: string) => {
   } catch {
     // Ignore logging failures to avoid blocking app startup.
   }
+};
+
+const getTrayIconPath = () => {
+  if (isDev) {
+    return path.join(process.cwd(), 'build', 'icon.ico');
+  }
+
+  return path.join(process.resourcesPath, 'icon.ico');
+};
+
+const showMainWindow = () => {
+  const window = mainWindow ?? createWindow();
+
+  if (window.isMinimized()) {
+    window.restore();
+  }
+
+  window.show();
+  window.focus();
+};
+
+const quitApp = () => {
+  allowQuit = true;
+  app.quit();
+};
+
+const createTray = () => {
+  if (tray) {
+    return tray;
+  }
+
+  const trayIcon = nativeImage.createFromPath(getTrayIconPath());
+  tray = new Tray(trayIcon);
+  tray.setToolTip('Focus Flow is running');
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      {
+        label: 'Open Focus Flow',
+        click: showMainWindow,
+      },
+      {
+        type: 'separator',
+      },
+      {
+        label: 'Quit Focus Flow',
+        click: quitApp,
+      },
+    ]),
+  );
+  tray.on('click', showMainWindow);
+  tray.on('double-click', showMainWindow);
+
+  return tray;
 };
 
 const createWindow = () => {
@@ -41,6 +97,23 @@ const createWindow = () => {
       contextIsolation: true,
       sandbox: true,
     },
+  });
+  mainWindow = window;
+
+  window.on('close', (event) => {
+    if (allowQuit) {
+      return;
+    }
+
+    event.preventDefault();
+    window.hide();
+    writeLaunchLog('window hidden to tray');
+  });
+
+  window.on('closed', () => {
+    if (mainWindow === window) {
+      mainWindow = null;
+    }
   });
 
   window.once('ready-to-show', () => {
@@ -85,15 +158,17 @@ const createWindow = () => {
   if (isDev) {
     writeLaunchLog('loading dev renderer');
     void window.loadURL('http://127.0.0.1:5173');
-    return;
+    return window;
   }
 
   writeLaunchLog('loading packaged renderer');
   void window.loadFile(path.join(__dirname, '../dist/index.html'));
+
+  return window;
 };
 
 const focusExistingWindow = () => {
-  const [window] = BrowserWindow.getAllWindows();
+  const window = mainWindow ?? BrowserWindow.getAllWindows()[0];
 
   if (!window) {
     return;
@@ -103,6 +178,7 @@ const focusExistingWindow = () => {
     window.restore();
   }
 
+  window.show();
   window.focus();
 };
 
@@ -113,6 +189,7 @@ app.on('second-instance', () => {
 
 app.whenReady().then(() => {
   writeLaunchLog('app ready');
+  createTray();
   createWindow();
 
   app.on('activate', () => {
@@ -126,8 +203,12 @@ process.on('uncaughtException', (error) => {
   writeLaunchLog(`uncaughtException "${error.stack ?? error.message}"`);
 });
 
+app.on('before-quit', () => {
+  allowQuit = true;
+});
+
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+  if (allowQuit && process.platform !== 'darwin') {
     app.quit();
   }
 });

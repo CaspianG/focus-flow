@@ -1,7 +1,7 @@
 {
   "name": "focus-flow",
   "private": false,
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Premium minimalist desktop focus timer with English and Russian UI for 50/10 and 90/15 work rhythms.",
   "author": "CaspianG",
   "license": "MIT",
@@ -43,7 +43,14 @@
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
+      "build/icon.ico",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build/icon.ico",
+        "to": "icon.ico"
+      }
     ],
     "directories": {
       "output": "release"
